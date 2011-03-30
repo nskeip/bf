@@ -2,8 +2,8 @@ module BrainFuck where
 
 data B = B {
     cells :: [Int],
-    current :: Int,
-    size :: Int
+    current :: Int, --TODO: zero based?
+    size :: Int --TODO: do i need this? - it aint wildlife!
 } deriving (Show)
 
 fillzeros :: Int -> [Int]
@@ -19,7 +19,7 @@ inc :: B -> B
 inc b = B (cell_op (+1) (-1 + current b) (cells b)) (current b) (size b)
 
 dec :: B -> B
-dec b = B (cell_op (\x->x-1) (-1 + current b) (cells b)) (current b) (size b)
+dec b = B (cell_op (+(-1)) (-1 + current b) (cells b)) (current b) (size b)
 
 fwd :: B -> B
 fwd b
