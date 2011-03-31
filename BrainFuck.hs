@@ -1,34 +1,37 @@
 module BrainFuck where
 
-data B = B {
-    cells :: [Int],
-    current :: Int, --TODO: zero based?
-    size :: Int --TODO: do i need this? - it aint wildlife!
-} deriving (Show)
-
-fillzeros :: Int -> [Int]
-fillzeros n = take n $ repeat 0
+data B = B { pos :: Int, cells :: [Int] } deriving (Show)
 
 createB :: Int -> B
-createB n = B (fillzeros(n)) 1 n
+createB n = B 0 (fillzeros(n))
+            where fillzeros n = take n $ repeat 0
 
-cell_op :: (Int -> Int) -> Int -> [Int] -> [Int]
-cell_op f n (xs) = (take n xs) ++ [f $ xs !! n] ++ (drop (n + 1) xs)
+
+b_current_cell_op :: B -> (Int -> Int) -> B
+b_current_cell_op b f = B n ((take n xs) ++ [f $ xs !! n] ++ (drop (n + 1) xs))
+                        where xs = cells b
+                              n  = pos b
+
 
 inc :: B -> B
-inc b = B (cell_op (+1) (-1 + current b) (cells b)) (current b) (size b)
+inc b = b_current_cell_op b (+1)
+
 
 dec :: B -> B
-dec b = B (cell_op (+(-1)) (-1 + current b) (cells b)) (current b) (size b)
+dec b = b_current_cell_op b (+(-1))
+
+
+size :: B -> Int
+size b = length $ cells b
+
 
 fwd :: B -> B
 fwd b
-    | current b < size b = B (cells b) (1 + current b) (size b)
-    | otherwise          = B (cells b) 1 (size b)
+    | pos b < size b = B (1 + pos b) (cells b)
+    | otherwise      = B 0 (cells b)
 
 
 back :: B -> B
 back b
-    | current b > 1 = B (cells b) (-1 + current b) (size b)
-    | otherwise     = B (cells b) (size b) (size b)
-
+    | pos b > 0     = B (-1 + pos b) (cells b)
+    | otherwise     = B (size b) (cells b)
