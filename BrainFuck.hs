@@ -35,3 +35,14 @@ back :: B -> B
 back b
     | pos b > 0     = B (-1 + pos b) (cells b)
     | otherwise     = B (size b) (cells b)
+
+
+eval :: [Char] -> B
+eval s = foldl op initial_machine s
+            where initial_machine = createB 30
+                  op macine op_code = case op_code of
+                                          '+' -> inc macine
+                                          '-' -> dec macine
+                                          '>' -> fwd macine
+                                          '<' -> back macine
+
