@@ -4,11 +4,6 @@ import Data.Char
 
 data B = B { pos :: Int, cells :: [Int] } deriving (Show)
 
-createB :: Int -> IO B
-createB n = return $ B 0 (fillzeros(n))
-                where fillzeros n = take n $ repeat 0
-
-
 size :: B -> Int
 size b = length $ cells b
 
@@ -66,11 +61,10 @@ command '.' = output
 command ',' = input
 command _   = noop
 
-
-eval_with_initial :: [Char] -> IO B -> IO B
-eval_with_initial s initial_machine = foldl (\machine opcode->machine >>= (command opcode)) initial_machine s
-
+createB :: Int -> IO B
+createB n = return $ B 0 (fillzeros(n))
+                where fillzeros n = take n $ repeat 0
 
 eval :: [Char] -> IO B
-eval s = eval_with_initial s (createB 30)
+eval s = foldl (\machine opcode->machine >>= (command opcode)) (createB 30) s
 
