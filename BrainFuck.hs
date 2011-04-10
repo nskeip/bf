@@ -50,7 +50,7 @@ output b = (putStr [(chr $ (cells b) !! (pos b))]) >> return b
 
 
 input :: B -> IO B
-input b = (getLine >>= return . ord . head) >>= \x->return $ set_curr b x
+input b = (getLine >>= return . ord . head) >>= return . set_curr b
 
 
 noop :: B -> IO B
