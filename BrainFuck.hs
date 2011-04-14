@@ -1,7 +1,6 @@
 module BrainFuck where
 
 import Data.Char
-import Control.Monad
 
 data B = B { pos :: Int, cells :: [Int] } deriving (Show)
 
