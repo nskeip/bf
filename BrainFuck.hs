@@ -14,43 +14,25 @@ createB n = B 0 (fillzeros(n))
 size :: B -> Int
 size b = length $ cells b
 
-main :: IO ()
-main = runStateT eval "++" (createB 5) >> return ()
-
 get_curr :: B -> Int
 get_curr b = (cells b) !! (pos b)
 
-apply :: (Int -> Int) -> StateT B IO ()
-apply f = do
-            b <- get
-            put $ let n = pos b
-                      h = take n $ cells b -- head
-                      t = drop (n + 1) $ cells b -- tail
-                      val = f $ get_curr b
-                      in B n $ h ++ [val] ++ t
-            return ()
+apply :: (Int -> Int) -> B -> B
+apply f b = let n = pos b
+                h = take n $ cells b       -- head
+                t = drop (n + 1) $ cells b -- tail
+                val = f $ get_curr b
+                in B n $ h ++ [val] ++ t
 
-fwd_helper :: B -> B
-fwd_helper b
+fwd :: B -> B
+fwd b
     | pos b < -1 + size b = B (1 + pos b) (cells b)
     | otherwise           = B 0 (cells b)
 
-fwd :: StateT B IO ()
-fwd = do
-        b <- get
-        put $ fwd_helper b
-        return ()
-
-back_helper :: B -> B
-back_helper b
-        | pos b > 0 = B (-1 + pos b) (cells b)
-        | otherwise = B (-1 + size b) (cells b)
-
-back :: StateT B IO ()
-back = do
-        b <- get
-        put $ back_helper b
-        return ()
+back :: B -> B
+back b
+    | pos b > 0 = B (-1 + pos b) (cells b)
+    | otherwise = B (-1 + size b) (cells b)
 
 output :: StateT B IO ()
 output = do
@@ -58,38 +40,22 @@ output = do
     liftIO $ print $ get_curr b
     return ()
 
-commands :: [(Char, StateT B IO ())]
-commands = [
-    ('+', apply (+1)),
-    ('-', apply (-1)),
-    ('>', fwd),
-    ('<', back),
-    ('.', output)]
-
---eval :: [Char] -> StateT B IO ()
---eval x:xs = maybe Nothing id $ lookup x commands 
-
 eval :: [Char] -> StateT B IO ()
 eval [] = return ()
 eval (x:xs) = do
-                f <- lookup x commands
                 b <- get
-                put $ f b
-                return $ eval xs
 
+                put $ case x of
+                        '+' -> apply (+1) b
+                        '-' -> apply (-1) b
+                        '>' -> fwd b
+                        '<' -> back b
+                        _   -> b
 
-code :: StateT B IO ()
-code = do
-    apply (+10)
-    apply (+20)
-    output
+                case x of
+                    '.' -> output
 
-    back
-    apply (+1)
-    output
-    
-    fwd
-    apply (+2)
-    output
+                eval xs
 
-    return ()
+main :: IO ()
+main = runStateT (eval "++") (createB 5) >> return ()
