@@ -36,7 +36,6 @@ output :: StateT B IO ()
 output = do
     b <- get
     liftIO $ print $ get_curr b
-    liftIO $ print b
     return ()
 
 eval :: [Char] -> StateT B IO ()
