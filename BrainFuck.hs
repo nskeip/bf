@@ -1,5 +1,6 @@
 module BrainFuck where
 
+import System
 import Control.Monad.State
 
 data B = B { 
@@ -57,4 +58,7 @@ eval (x:xs) = do
                 eval xs
 
 main :: IO ()
-main = runStateT (eval ".+++.---.") (createB 5) >> return ()
+main = do
+    args <- getArgs
+    runStateT (eval $ head args) (createB 30)
+    return ()
