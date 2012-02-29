@@ -1,70 +1,64 @@
 module BrainFuck where
 
-import Data.Char
+import System
+import Control.Monad.State
 
-data B = B { pos :: Int, cells :: [Int] } deriving (Show)
+data B = B { 
+    pos :: Int, 
+    cells :: [Int] 
+} deriving (Show)
+
+createB :: Int -> B
+createB n = B 0 (take n $ repeat 0)
 
 size :: B -> Int
 size b = length $ cells b
 
-fwd :: B -> IO B
-fwd b
-    | pos b < size b = return $ B (1 + pos b) (cells b)
-    | otherwise      = return $ B 0 (cells b)
-
-back :: B -> IO B
-back b
-    | pos b > 0 = return $ B (-1 + pos b) (cells b)
-    | otherwise = return $ B (-1 + size b) (cells b)
-
 get_curr :: B -> Int
 get_curr b = (cells b) !! (pos b)
 
-set_curr :: B -> Int -> B
-set_curr b val = B n ((take n xs) ++ [val] ++ (drop (n + 1) xs))
-                    where xs = cells b
-                          n  = pos b
+apply :: (Int -> Int) -> B -> B
+apply f b = let n = pos b
+                h = take n $ cells b       -- head
+                t = drop (n + 1) $ cells b -- tail
+                in B n $ h ++ [f (get_curr b)] ++ t
 
-inc :: B -> IO B
-inc b = return $ set_curr b new_val
-            where new_val = 1 + (get_curr b)
+fwd :: B -> B
+fwd b
+    | pos b < -1 + size b = B (1 + pos b) (cells b)
+    | otherwise           = B 0 (cells b)
 
-dec :: B -> IO B
-dec b = return $ set_curr b new_val
-            where new_val = -1 + (get_curr b)
+back :: B -> B
+back b
+    | pos b > 0 = B (-1 + pos b) (cells b)
+    | otherwise = B (-1 + size b) (cells b)
 
-output :: B -> IO B
-output b = (putStr [(chr $ (cells b) !! (pos b))]) >> return b
+output :: StateT B IO ()
+output = do
+    b <- get
+    liftIO $ print $ get_curr b
+    return ()
 
-input :: B -> IO B
-input b = (getLine >>= return . ord . head) >>= return . set_curr b
+eval :: [Char] -> StateT B IO ()
+eval [] = return ()
+eval (x:xs) = do
+                b <- get
 
-noop :: B -> IO B
-noop b = return b
+                put $ case x of
+                        '+'         -> apply (+1) b
+                        '-'         -> apply (subtract 1) b
+                        '>'         -> fwd b
+                        '<'         -> back b
+                        otherwise   -> b
 
-command :: Char -> (B -> IO B)
-command '+' = inc
-command '-' = dec
-command '>' = fwd
-command '<' = back
-command '.' = output
-command ',' = input
-command _   = noop
+                case x of
+                    '.'         -> output
+                    otherwise   -> return ()
 
-createB :: Int -> B
-createB n = B 0 (fillzeros(n))
-                where fillzeros n = take n $ repeat 0
+                eval xs
 
-eval_helper :: Int -> [Char] -> B -> IO B
-eval_helper n ops b = if (n + 1) > length(ops)
-                        then 
-                            return b
-                        else
-                            current_op b >>= eval_helper (n + 1) ops
-                                   where current_op = command $ ops !! n
-
-eval :: [Char] -> IO B
-eval [] = return $ createB 30
-eval s  = eval_helper 0 s (createB 30)
-
-
+main :: IO ()
+main = do
+    args <- getArgs
+    runStateT (eval $ head args) (createB 30)
+    return ()
