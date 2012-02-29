@@ -8,8 +8,7 @@ data B = B {
 } deriving (Show)
 
 createB :: Int -> B
-createB n = B 0 (fillzeros(n))
-                where fillzeros n = take n $ repeat 0
+createB n = B 0 (take n $ repeat 0)
 
 size :: B -> Int
 size b = length $ cells b
@@ -21,8 +20,7 @@ apply :: (Int -> Int) -> B -> B
 apply f b = let n = pos b
                 h = take n $ cells b       -- head
                 t = drop (n + 1) $ cells b -- tail
-                val = f $ get_curr b
-                in B n $ h ++ [val] ++ t
+                in B n $ h ++ [f (get_curr b)] ++ t
 
 fwd :: B -> B
 fwd b
@@ -38,6 +36,7 @@ output :: StateT B IO ()
 output = do
     b <- get
     liftIO $ print $ get_curr b
+    liftIO $ print b
     return ()
 
 eval :: [Char] -> StateT B IO ()
@@ -46,16 +45,17 @@ eval (x:xs) = do
                 b <- get
 
                 put $ case x of
-                        '+' -> apply (+1) b
-                        '-' -> apply (-1) b
-                        '>' -> fwd b
-                        '<' -> back b
-                        _   -> b
+                        '+'         -> apply (\x->x+1) b
+                        '-'         -> apply (\x->x-1) b
+                        '>'         -> fwd b
+                        '<'         -> back b
+                        otherwise   -> b
 
                 case x of
-                    '.' -> output
+                    '.'         -> output
+                    otherwise   -> return ()
 
                 eval xs
 
 main :: IO ()
-main = runStateT (eval "++") (createB 5) >> return ()
+main = runStateT (eval "+++>>.<<++.") (createB 5) >> return ()
