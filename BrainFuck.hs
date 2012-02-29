@@ -40,6 +40,13 @@ output = do
     liftIO $ putStr [chr $ get_curr b]
     return ()
 
+input :: StateT B IO ()
+input = do
+        inp <- liftIO $ getLine
+        b <- get
+        put $ apply (\_->(ord $ head inp)) b
+        return ()
+
 eval :: [Char] -> StateT B IO ()
 eval [] = return ()
 eval (x:xs) = do
@@ -54,6 +61,7 @@ eval (x:xs) = do
 
                 case x of
                     '.'         -> output
+                    ','         -> input
                     otherwise   -> return ()
 
                 eval xs
