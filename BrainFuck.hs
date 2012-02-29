@@ -15,12 +15,10 @@ size :: B -> Int
 size b = length $ cells b
 
 main :: IO ()
-main = runStateT code (createB 5) >> return ()
+main = runStateT eval "++" (createB 5) >> return ()
 
 get_curr :: B -> Int
 get_curr b = (cells b) !! (pos b)
-
-
 
 apply :: (Int -> Int) -> StateT B IO ()
 apply f = do
@@ -58,8 +56,27 @@ output :: StateT B IO ()
 output = do
     b <- get
     liftIO $ print $ get_curr b
-    liftIO $ print $ show b
     return ()
+
+commands :: [(Char, StateT B IO ())]
+commands = [
+    ('+', apply (+1)),
+    ('-', apply (-1)),
+    ('>', fwd),
+    ('<', back),
+    ('.', output)]
+
+--eval :: [Char] -> StateT B IO ()
+--eval x:xs = maybe Nothing id $ lookup x commands 
+
+eval :: [Char] -> StateT B IO ()
+eval [] = return ()
+eval (x:xs) = do
+                f <- lookup x commands
+                b <- get
+                put $ f b
+                return $ eval xs
+
 
 code :: StateT B IO ()
 code = do
