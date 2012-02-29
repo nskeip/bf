@@ -44,8 +44,8 @@ eval (x:xs) = do
                 b <- get
 
                 put $ case x of
-                        '+'         -> apply (\x->x+1) b
-                        '-'         -> apply (\x->x-1) b
+                        '+'         -> apply (+1) b
+                        '-'         -> apply (subtract 1) b
                         '>'         -> fwd b
                         '<'         -> back b
                         otherwise   -> b
@@ -57,4 +57,4 @@ eval (x:xs) = do
                 eval xs
 
 main :: IO ()
-main = runStateT (eval "+++>>.<<++.") (createB 5) >> return ()
+main = runStateT (eval ".+++.---.") (createB 5) >> return ()
