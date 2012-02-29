@@ -1,4 +1,4 @@
-module BrainFuck where
+module Main where
 
 import System
 import Control.Monad.State
