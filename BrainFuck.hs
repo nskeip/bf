@@ -1,6 +1,7 @@
 module Main where
 
 import System
+import Data.Char
 import Control.Monad.State
 
 data B = B { 
@@ -36,7 +37,7 @@ back b
 output :: StateT B IO ()
 output = do
     b <- get
-    liftIO $ print $ get_curr b
+    liftIO $ putStr [chr $ get_curr b]
     return ()
 
 eval :: [Char] -> StateT B IO ()
@@ -61,4 +62,5 @@ main :: IO ()
 main = do
     args <- getArgs
     runStateT (eval $ head args) (createB 30)
+    liftIO $ putStr "\n"
     return ()
