@@ -47,24 +47,30 @@ input = do
         put $ apply (\_->(ord $ head inp)) b
         return ()
 
-eval :: [Char] -> StateT B IO ()
-eval [] = return ()
-eval (x:xs) = do
-                b <- get
+eval_helper :: [Char] -> Int -> StateT B IO ()
+eval_helper [] _ = return ()
+eval_helper xs i
+        | i == length xs = return ()
+        | otherwise      = let x = xs !! i
+                            in
+                            do
+                                b <-get
 
-                put $ case x of
-                        '+'         -> apply (+1) b
-                        '-'         -> apply (subtract 1) b
-                        '>'         -> fwd b
-                        '<'         -> back b
-                        otherwise   -> b
+                                put $ case x of
+                                        '+'         -> apply (+1) b
+                                        '-'         -> apply (subtract 1) b
+                                        '>'         -> fwd b
+                                        '<'         -> back b
+                                        otherwise   -> b
 
-                case x of
-                    '.'         -> output
-                    ','         -> input
-                    otherwise   -> return ()
+                                case x of
+                                    '.'         -> output
+                                    ','         -> input
+                                    otherwise   -> return ()
 
-                eval xs
+                                eval_helper xs (i + 1)
+
+eval xs = eval_helper xs 0
 
 main :: IO ()
 main = do
