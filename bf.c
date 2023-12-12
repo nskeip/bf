@@ -6,15 +6,13 @@
 #define BF_MEMORY_SIZE 256
 
 void bf(const char *const program_start) {
+  if (*program_start == '\0' || program_start == NULL) {
+    return;
+  }
   char memory[BF_MEMORY_SIZE] = {0};
   char *data = memory;
-
   const char *instruction = program_start;
-  // int i = 0;
-  while (*instruction) {
-    // const size_t instruction_n = instruction - program_start;
-    // printf("%c at %zu, (mem: %d,%d,%d,%d,%d)\n", *instruction, instruction_n,
-    //        memory[0], memory[1], memory[2], memory[3], memory[4]);
+  do {
     switch (*instruction) {
     case '>':
       data = memory + (data - memory + 1) % BF_MEMORY_SIZE;
@@ -30,39 +28,19 @@ void bf(const char *const program_start) {
       break;
     case '[':
       if (*data == 0) {
-        int opening_parenthesis_n = 1;
-        while (1) {
-          if (*++instruction == ']') {
-            --opening_parenthesis_n;
-          } else if (*instruction == '[') {
-            ++opening_parenthesis_n;
-          }
-          if (opening_parenthesis_n == 0) {
-            break;
-          }
+        ++instruction;
+        for (int bracket_flag = 1; bracket_flag != 0; ++instruction) {
+          bracket_flag += (*instruction == '[') - (*instruction == ']');
         }
       }
-      instruction++;
       break;
     case ']':
       if (*data != 0) {
-        int closing_parenthesis_n = 1;
-        while (1) {
-          if (--instruction == program_start) {
-            fprintf(stderr, "Error: Unmatched ']'\n");
-            return;
-          }
-          if (*instruction == '[') {
-            --closing_parenthesis_n;
-          } else if (*instruction == ']') {
-            ++closing_parenthesis_n;
-          }
-          if (closing_parenthesis_n == 0) {
-            break;
-          }
+        --instruction;
+        for (int bracket_flag = 1; bracket_flag != 0; --instruction) {
+          bracket_flag -= (*instruction == '[') - (*instruction == ']');
         }
       }
-      instruction++;
       break;
     case '.':
       printf("%c", *data);
@@ -71,9 +49,7 @@ void bf(const char *const program_start) {
       *data = getchar();
       break;
     }
-    instruction++;
-  }
-  puts("");
+  } while (*++instruction != '\0');
 }
 
 int main(int argc, char *argv[]) {
